@@ -1,0 +1,163 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import seaborn as sns
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+import warnings
+warnings.filterwarnings("ignore")
+
+# ─────────────────────────────────────────────
+# 1. DATASET — Historical AI Adoption & Job Displacement (2015–2025)
+# ─────────────────────────────────────────────
+years_hist = np.arange(2015, 2026)
+
+data = {
+    "Year": years_hist,
+    "AI_Investment_Billion_USD": [12, 18, 26, 40, 58, 72, 91, 119, 154, 189, 235],
+    "Jobs_Automated_Million":    [1.2, 1.8, 2.5, 3.4, 5.1, 6.8, 9.2, 12.4, 15.8, 19.3, 24.1],
+    "New_AI_Jobs_Created_Million":[0.3, 0.5, 0.9, 1.4, 2.2, 3.5, 5.1, 7.3, 9.8, 13.2, 17.5],
+    "Global_Unemployment_Pct":   [5.6, 5.3, 5.0, 5.4, 5.8, 5.2, 6.9, 6.2, 5.8, 5.4, 5.1],
+    "AI_Productivity_Index":     [100, 108, 119, 133, 151, 172, 198, 231, 270, 318, 375],
+}
+
+df = pd.DataFrame(data)
+
+# ─────────────────────────────────────────────
+# 2. FORECAST — 2026–2035 (Polynomial Regression)
+# ─────────────────────────────────────────────
+forecast_years = np.arange(2026, 2036)
+all_years = np.arange(2015, 2036)
+
+def poly_forecast(df, col, forecast_years, degree=2):
+    X = df["Year"].values.reshape(-1, 1)
+    y = df[col].values
+    poly = PolynomialFeatures(degree=degree)
+    X_poly = poly.fit_transform(X)
+    model = LinearRegression().fit(X_poly, y)
+    X_fore = poly.transform(forecast_years.reshape(-1, 1))
+    return model.predict(X_fore)
+
+cols_to_forecast = [
+    "AI_Investment_Billion_USD",
+    "Jobs_Automated_Million",
+    "New_AI_Jobs_Created_Million",
+    "Global_Unemployment_Pct",
+    "AI_Productivity_Index",
+]
+
+forecast_df = pd.DataFrame({"Year": forecast_years})
+for col in cols_to_forecast:
+    forecast_df[col] = poly_forecast(df, col, forecast_years)
+
+# Clamp unemployment
+forecast_df["Global_Unemployment_Pct"] = forecast_df["Global_Unemployment_Pct"].clip(3.5, 12)
+
+full_df = pd.concat([df, forecast_df], ignore_index=True)
+full_df["Period"] = full_df["Year"].apply(lambda y: "Historical" if y <= 2025 else "Forecast")
+
+# ─────────────────────────────────────────────
+# 3. SECTOR IMPACT TABLE
+# ─────────────────────────────────────────────
+sectors = pd.DataFrame({
+    "Sector":              ["Manufacturing", "Transportation", "Retail", "Finance", "Healthcare",
+                            "Education", "Legal", "Creative Arts", "Software Dev", "Agriculture"],
+    "Automation_Risk_Pct": [78, 72, 65, 58, 35, 28, 44, 20, 30, 55],
+    "Job_Loss_2035_M":     [8.4, 5.2, 9.1, 4.7, 2.1, 1.4, 2.8, 0.9, 1.5, 3.6],
+    "New_Jobs_2035_M":     [1.2, 0.8, 2.3, 3.1, 4.5, 3.8, 1.2, 2.7, 5.9, 0.7],
+    "Net_Change_M":        [-7.2, -4.4, -6.8, -1.6, 2.4, 2.4, -1.6, 1.8, 4.4, -2.9],
+})
+
+# ─────────────────────────────────────────────
+# 4. VISUALIZATION
+# ─────────────────────────────────────────────
+plt.style.use("dark_background")
+fig = plt.figure(figsize=(20, 14), facecolor="#0a0e1a")
+fig.suptitle("AI vs. THE WORKFORCE — 10-YEAR FORECAST (2026–2035)",
+             fontsize=22, fontweight="bold", color="#00d4ff", y=0.98)
+
+ax1 = fig.add_subplot(3, 3, (1, 2))
+hist = full_df[full_df.Period == "Historical"]
+fore = full_df[full_df.Period == "Forecast"]
+ax1.plot(hist.Year, hist.Jobs_Automated_Million, "r-o", lw=2, ms=5, label="Jobs Automated (Historical)")
+ax1.plot(fore.Year, fore.Jobs_Automated_Million, "r--", lw=2, label="Jobs Automated (Forecast)")
+ax1.plot(hist.Year, hist.New_AI_Jobs_Created_Million, "g-o", lw=2, ms=5, label="New AI Jobs (Historical)")
+ax1.plot(fore.Year, fore.New_AI_Jobs_Created_Million, "g--", lw=2, label="New AI Jobs (Forecast)")
+ax1.axvline(2025.5, color="yellow", ls=":", lw=1.5, alpha=0.7)
+ax1.set_title("Job Displacement vs. Job Creation (Millions)", color="white", fontsize=12)
+ax1.legend(fontsize=8, loc="upper left")
+ax1.set_facecolor("#111827")
+ax1.tick_params(colors="white")
+for spine in ax1.spines.values(): spine.set_edgecolor("#333")
+
+ax2 = fig.add_subplot(3, 3, 3)
+ax2.plot(full_df.Year, full_df.AI_Investment_Billion_USD, color="#00d4ff", lw=2.5)
+ax2.fill_between(full_df.Year, full_df.AI_Investment_Billion_USD, alpha=0.2, color="#00d4ff")
+ax2.axvline(2025.5, color="yellow", ls=":", lw=1.5, alpha=0.7)
+ax2.set_title("Global AI Investment ($B)", color="white", fontsize=12)
+ax2.set_facecolor("#111827")
+ax2.tick_params(colors="white")
+for spine in ax2.spines.values(): spine.set_edgecolor("#333")
+
+ax3 = fig.add_subplot(3, 3, (4, 5))
+colors_net = ["#ff4444" if x < 0 else "#44ff88" for x in sectors.Net_Change_M]
+bars = ax3.barh(sectors.Sector, sectors.Net_Change_M, color=colors_net, edgecolor="none", height=0.6)
+ax3.axvline(0, color="white", lw=1)
+ax3.set_title("Net Job Change by Sector by 2035 (Millions)", color="white", fontsize=12)
+ax3.set_facecolor("#111827")
+ax3.tick_params(colors="white")
+for spine in ax3.spines.values(): spine.set_edgecolor("#333")
+for bar, val in zip(bars, sectors.Net_Change_M):
+    ax3.text(val + (0.1 if val >= 0 else -0.1), bar.get_y() + bar.get_height()/2,
+             f"{val:+.1f}M", va="center", ha="left" if val >= 0 else "right",
+             color="white", fontsize=8)
+
+ax4 = fig.add_subplot(3, 3, 6)
+ax4.barh(sectors.Sector, sectors.Automation_Risk_Pct,
+         color=plt.cm.RdYlGn_r(sectors.Automation_Risk_Pct.values / 100), edgecolor="none", height=0.6)
+ax4.set_title("Automation Risk % by Sector", color="white", fontsize=12)
+ax4.set_facecolor("#111827")
+ax4.tick_params(colors="white")
+for spine in ax4.spines.values(): spine.set_edgecolor("#333")
+ax4.set_xlim(0, 100)
+
+ax5 = fig.add_subplot(3, 3, (7, 8))
+ax5.plot(full_df.Year, full_df.AI_Productivity_Index, color="#ffd700", lw=2.5)
+ax5.fill_between(full_df.Year, full_df.AI_Productivity_Index, alpha=0.2, color="#ffd700")
+ax5.axvline(2025.5, color="white", ls=":", lw=1.5, alpha=0.7)
+ax5.set_title("AI Productivity Index (Base=100, Year 2015)", color="white", fontsize=12)
+ax5.set_facecolor("#111827")
+ax5.tick_params(colors="white")
+for spine in ax5.spines.values(): spine.set_edgecolor("#333")
+
+ax6 = fig.add_subplot(3, 3, 9)
+ax6.plot(full_df.Year, full_df.Global_Unemployment_Pct, color="#ff6b6b", lw=2.5)
+ax6.fill_between(full_df.Year, full_df.Global_Unemployment_Pct, alpha=0.2, color="#ff6b6b")
+ax6.axvline(2025.5, color="white", ls=":", lw=1.5, alpha=0.7)
+ax6.set_title("Global Unemployment Rate (%)", color="white", fontsize=12)
+ax6.set_facecolor("#111827")
+ax6.tick_params(colors="white")
+for spine in ax6.spines.values(): spine.set_edgecolor("#333")
+
+fig.text(0.5, 0.01, "Andre Townsend, MBA  |  Data Analytics Portfolio  |  Project 1: AI vs. The Workforce",
+         ha="center", color="#888", fontsize=9)
+
+plt.tight_layout(rect=[0, 0.03, 1, 0.97])
+plt.savefig("project1_ai_workforce.png", dpi=150, bbox_inches="tight", facecolor="#0a0e1a")
+plt.show()
+print("✅ Project 1 chart saved.")
+
+# ─────────────────────────────────────────────
+# 5. EXPORT CSV FOR POWER BI
+# ─────────────────────────────────────────────
+full_df.to_csv("project1_ai_workforce_full.csv", index=False)
+sectors.to_csv("project1_ai_workforce_sectors.csv", index=False)
+print("✅ CSV files exported for Power BI import.")
+print("\n📊 SUMMARY STATS (2035 Forecast):")
+row2035 = full_df[full_df.Year == 2035].iloc[0]
+print(f"   AI Investment:        ${row2035['AI_Investment_Billion_USD']:.1f}B")
+print(f"   Jobs Automated:       {row2035['Jobs_Automated_Million']:.1f}M")
+print(f"   New AI Jobs Created:  {row2035['New_AI_Jobs_Created_Million']:.1f}M")
+print(f"   Productivity Index:   {row2035['AI_Productivity_Index']:.0f}")
+print(f"   Global Unemployment:  {row2035['Global_Unemployment_Pct']:.1f}%")
