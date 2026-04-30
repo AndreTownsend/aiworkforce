@@ -35,6 +35,9 @@ As AI adoption accelerates globally, organizations, governments, and workers fac
 - AI Productivity Growth
 - Global Unemployment Trends
 
+https://github.com/AndreTownsend/aiworkforce/blob/6db72bf83285a9e49bbd951def129c0254ba91e5/download%20(1).png
+
+
 ---
 
 ## Findings
