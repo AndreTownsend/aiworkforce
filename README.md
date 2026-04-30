@@ -1,11 +1,11 @@
 # AI vs. The Workforce — 10-Year Forecast (2026–2035)
 
-## 📌 Executive Summary
+## Executive Summary
 This project analyzes the impact of artificial intelligence (AI) on the global workforce using historical data (2015–2025) and predictive modeling through 2035. The analysis highlights a growing gap between jobs automated and new AI-related job creation, while also identifying sectors that will experience net job gains or losses. Despite rising automation, productivity increases significantly, suggesting economic growth alongside workforce disruption.
 
 ---
 
-## ❗ Business Problem
+## Business Problem
 As AI adoption accelerates globally, organizations, governments, and workers face uncertainty regarding job displacement, job creation, and long-term employment trends. 
 
 **Key Questions:**
@@ -15,7 +15,7 @@ As AI adoption accelerates globally, organizations, governments, and workers fac
 
 ---
 
-## ⚙️ Methodology
+## Methodology
 - **Data Creation:** Simulated dataset representing global AI investment, job automation, job creation, unemployment, and productivity (2015–2025)
 - **Forecasting Model:** Polynomial Regression (Degree 2) using `scikit-learn`
 - **Time Horizon:** Forecast from 2026 to 2035
@@ -25,7 +25,7 @@ As AI adoption accelerates globally, organizations, governments, and workers fac
 
 ---
 
-## 📊 Key Visualizations
+## Key Visualizations
 
 ![AI Workforce Analysis](project1_ai_workforce.png)
 
@@ -39,7 +39,7 @@ As AI adoption accelerates globally, organizations, governments, and workers fac
 
 ---
 
-## 🔍 Findings
+## Findings
 
 ### 1. Job Displacement Outpaces Job Creation
 - By 2035, **jobs automated significantly exceed new AI jobs created**
@@ -62,7 +62,7 @@ As AI adoption accelerates globally, organizations, governments, and workers fac
 
 ---
 
-## 🛠 Skills Demonstrated
+## Skills Demonstrated
 
 - **Data Analysis:** Pandas, NumPy  
 - **Machine Learning:** Polynomial Regression (Scikit-learn)  
@@ -74,7 +74,7 @@ As AI adoption accelerates globally, organizations, governments, and workers fac
 
 ---
 
-## 📈 Tools & Technologies
+## Tools & Technologies
 - Python  
 - Pandas  
 - NumPy  
@@ -85,7 +85,7 @@ As AI adoption accelerates globally, organizations, governments, and workers fac
 
 ---
 
-## 🚀 Next Steps
+## Next Steps
 
 - Integrate **real-world datasets** (World Bank, OECD, IMF)
 - Enhance model accuracy using:
@@ -100,18 +100,11 @@ As AI adoption accelerates globally, organizations, governments, and workers fac
 
 ---
 
-## 📁 Project Outputs
-- `project1_ai_workforce.png` → Visualization dashboard  
-- `project1_ai_workforce_full.csv` → Forecast dataset  
-- `project1_ai_workforce_sectors.csv` → Sector analysis  
-
----
-
-## 👤 Author
+## Author
 **Andre Townsend, MBA**  
 Data Analytics Portfolio  
 
 ---
 
-## ⭐ Project Insight
+## Project Insight
 AI is not just replacing jobs — it is reshaping the entire structure of the global workforce. The challenge is not technology, but adaptation.
